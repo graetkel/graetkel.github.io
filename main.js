@@ -1,59 +1,50 @@
 var AM = new AssetManager();
 
-function Animation(spriteSheet, frameWidth, frameHeight, sheetWidth, frameDuration, frames, loop, scale) {
+function Animation(spriteSheet, startX, startY, frameWidth, frameHeight, frameDuration, frames, loop, reverse) {
     this.spriteSheet = spriteSheet;
+    this.startX = startX;
+    this.startY = startY;
     this.frameWidth = frameWidth;
     this.frameDuration = frameDuration;
     this.frameHeight = frameHeight;
-    this.sheetWidth = sheetWidth;
     this.frames = frames;
     this.totalTime = frameDuration * frames;
     this.elapsedTime = 0;
     this.loop = loop;
-    this.scale = scale;
+    this.reverse = reverse;
 }
 
-Animation.prototype.drawFrame = function (tick, ctx, x, y) {
+Animation.prototype.drawFrame = function (tick, ctx, x, y, scaleBy) {
+    var scaleBy = scaleBy || 1;
     this.elapsedTime += tick;
-    if (this.isDone()) {
-        if (this.loop) this.elapsedTime = 0;
+    if (this.loop) {
+        if (this.isDone()) {
+            this.elapsedTime = 0;
+        }
+    } else if (this.isDone()) {
+        return;
     }
-    var frame = this.currentFrame();
-    var xindex = 0;
-    var yindex = 0;
-    xindex = frame % this.sheetWidth;
-    yindex = Math.floor(frame / this.sheetWidth);
-
-    ctx.drawImage(this.spriteSheet,
-                 xindex * this.frameWidth, yindex * this.frameHeight,  // source from sheet
-                 this.frameWidth, this.frameHeight,
-                 x, y,
-                 this.frameWidth * this.scale,
-                 this.frameHeight * this.scale);
-}
-
-//CHANGED: drawFrameB is a new method the draws backwards
-//TODO: Make it so it draws backwards
-Animation.prototype.drawFrameB = function (tick, ctx, x, y) {
-    this.elapsedTime += tick;
-    if (this.isDone()) {
-        if (this.loop) this.elapsedTime = 0;
+    var index = this.reverse ? this.frames - this.currentFrame() - 1 : this.currentFrame();
+    var vindex = 0;
+    if ((index + 1) * this.frameWidth + this.startX > this.spriteSheet.width) {
+        index -= Math.floor((this.spriteSheet.width - this.startX) / this.frameWidth);
+        vindex++;
     }
-    var frame = this.currentFrame();
-    var xindex = 0;
-    var yindex = 0;
-    xindex = frame % this.sheetWidth;
-    yindex = Math.floor(frame / this.sheetWidth);
+    while ((index + 1) * this.frameWidth > this.spriteSheet.width) {
+        index -= Math.floor(this.spriteSheet.width / this.frameWidth);
+        vindex++;
+    }
+
+    var locX = x;
+    var locY = y;
+    var offset = vindex === 0 ? this.startX : 0;
     ctx.drawImage(this.spriteSheet,
-                 xindex * this.frameWidth, yindex * this.frameHeight,  // source from sheet
-                 this.frameWidth, this.frameHeight,
-                 x, y,
-                 this.frameWidth * this.scale,
-                 (this.frameHeight * this.scale));
-
-
+                  index * this.frameWidth + offset, vindex * this.frameHeight + this.startY,  // source from sheet
+                  this.frameWidth, this.frameHeight,
+                  locX, locY,
+                  this.frameWidth * scaleBy,
+                  this.frameHeight * scaleBy);
 }
-
 
 Animation.prototype.currentFrame = function () {
     return Math.floor(this.elapsedTime / this.frameDuration);
@@ -65,7 +56,7 @@ Animation.prototype.isDone = function () {
 
 // no inheritance
 function Background(game, spritesheet) {
-  this.animation = new Animation(spritesheet, 499, 374, 4, 0.15, 16, true, 1.9);
+  this.animation = new Animation(spritesheet,0,0, 499, 374, 0.09, 16, true, false);
   this.speed = 100;
   this.ctx = game.ctx;
   Entity.call(this, game, 0, 0);
@@ -80,16 +71,13 @@ Background.prototype.update = function () {
 };
 
 Background.prototype.draw = function () {
-    this.animation.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
+    this.animation.drawFrame(this.game.clockTick, this.ctx, this.x, this.y, 1.9);
     Entity.prototype.draw.call(this);
 }
 
-
-//---------------
-
 // inheritance Bull
 function Bull(game, spritesheet) {
-    this.animation = new Animation(spritesheet, 194, 219, 6, 0.15, 6, true, 0.75);
+    this.animation = new Animation(spritesheet, 0, 0, 194, 219, 0.15, 6, true, false);
     this.speed = 150;
     this.ctx = game.ctx;
     Entity.call(this, game, 300, 338);
@@ -105,7 +93,7 @@ Bull.prototype.update = function () {
 }
 
 Bull.prototype.draw = function () {
-    this.animation.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
+    this.animation.drawFrame(this.game.clockTick, this.ctx, this.x, this.y, 0.75);
     Entity.prototype.draw.call(this);
 }
 
@@ -115,13 +103,13 @@ Bull.prototype.draw = function () {
 
 // inheritance
 function ManSpear(game, spritesheetF, spritesheetB, spritesheetL, spritesheetR) {
-    this.animationF = new Animation(spritesheetF, 136, 141, 6, 0.15, 6, true, 1);
-    this.animationB = new Animation(spritesheetB, 136, 141, 6, 0.15, 6, true, 1);
-    this.animationL = new Animation(spritesheetL, 136, 141, 1, 0.15, 1, true, 1);
-    this.animationR = new Animation(spritesheetR, 136, 141, 1, 0.15, 1, true, 1);
-    this.speed = 100;
+    this.animationF = new Animation(spritesheetF, 0, 0, 136, 141, 0.15, 6, true, false);
+    this.animationB = new Animation(spritesheetB, 0, 0, 136, 141, 0.15, 6, true, true);
+    this.animationL = new Animation(spritesheetL, 0, 0, 136, 141, 0.15, 1, true, false);
+    this.animationR = new Animation(spritesheetR, 0, 0, 136, 141, 0.15, 1, true, false);
+    this.speed = 150;
     this.ctx = game.ctx;
-    Entity.call(this, game, 0, 000);
+    Entity.call(this, game, 0, 255);
 }
 
 ManSpear.prototype = new Entity();
@@ -140,7 +128,6 @@ function KeyCheckDown() {
         case 39:// Draw the animation walk right
             manPosition = 4;
             console.log("right");
-            //that.context.
             break;
     }
 }
@@ -183,22 +170,21 @@ ManSpear.prototype.update = function () {
 ManSpear.prototype.draw = function () {
   switch (manPosition) {
     case 0: //init
-    this.animationR.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
+    this.animationR.drawFrame(this.game.clockTick, this.ctx, this.x, this.y, 1);
     break;
     case 1: //Stand left
-    this.animationL.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
+    this.animationL.drawFrame(this.game.clockTick, this.ctx, this.x, this.y, 1);
     break;
     case 2: //Stand right
-    this.animationR.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
+    this.animationR.drawFrame(this.game.clockTick, this.ctx, this.x, this.y, 1);
     break;
     case 3: //Walk left
-    this.animationB.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
+    this.animationB.drawFrame(this.game.clockTick, this.ctx, this.x, this.y, 1);
     break;
     case 4: //Walk right
-    this.animationF.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
+    this.animationF.drawFrame(this.game.clockTick, this.ctx, this.x, this.y, 1);
     break;
-    default:
-
+    //default:
   }
   Entity.prototype.draw.call(this);
 }
@@ -210,10 +196,9 @@ ManSpear.prototype.draw = function () {
 
 // inheritance
 function Zombie(game, spritesheet) {
-    this.animation = new Animation(spritesheet, 94, 151, 6, 0.15, 6, true, 0.6);
+    this.animation = new Animation(spritesheet, 0, 0, 94, 151, 0.15, 6, true, false);
     this.speed = 75;
     this.ctx = game.ctx;
-
     Entity.call(this, game, 500, 410);
 
 }
@@ -229,8 +214,7 @@ Zombie.prototype.update = function () {
 }
 
 Zombie.prototype.draw = function () {
-
-    this.animation.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
+    this.animation.drawFrame(this.game.clockTick, this.ctx, this.x, this.y, 0.6);
     Entity.prototype.draw.call(this);
 }
 
@@ -240,8 +224,7 @@ Zombie.prototype.draw = function () {
 
 // inheritance
 function Wizard(game, spritesheet) {
-    this.animation = new Animation(spritesheet, 119, 155, 6, 0.15, 6, true, .8
-    );
+    this.animation = new Animation(spritesheet, 0, 0, 119, 155, 0.15, 6, true, false);
     this.speed = 100;
     this.ctx = game.ctx;
     Entity.call(this, game, 0, 381);
@@ -251,18 +234,13 @@ Wizard.prototype = new Entity();
 Wizard.prototype.constructor = Wizard;
 
 Wizard.prototype.update = function () {
-    //    if (this.animation.elapsedTime < this.animation.totalTime * 8 / 14)
-    //        this.x += this.game.clockTick * this.speed;
-    //    if (this.x > 800) this.x = -230;
-
-
     this.x += this.game.clockTick * this.speed;
     if (this.x > 800) this.x = -230;
     Entity.prototype.update.call(this);
 }
 
 Wizard.prototype.draw = function () {
-    this.animation.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
+    this.animation.drawFrame(this.game.clockTick, this.ctx, this.x, this.y, 0.8);
     Entity.prototype.draw.call(this);
 }
 
@@ -272,7 +250,7 @@ Wizard.prototype.draw = function () {
 
 // inheritance
 function Specter(game, spritesheet) {
-    this.animation = new Animation(spritesheet, 164, 171, 4, 0.15, 4, true, 0.7);
+    this.animation = new Animation(spritesheet, 0, 0, 164, 171, 0.15, 4, true, false);
     this.speed = 100;
     this.ctx = game.ctx;
     Entity.call(this, game, 0, 100);
@@ -282,18 +260,13 @@ Specter.prototype = new Entity();
 Specter.prototype.constructor = Specter;
 
 Specter.prototype.update = function () {
-    //    if (this.animation.elapsedTime < this.animation.totalTime * 8 / 14)
-    //        this.x += this.game.clockTick * this.speed;
-    //    if (this.x > 800) this.x = -230;
-
-
     this.x += this.game.clockTick * this.speed;
     if (this.x > 800) this.x = -230;
     Entity.prototype.update.call(this);
 }
 
 Specter.prototype.draw = function () {
-    this.animation.drawFrame(this.game.clockTick, this.ctx, this.x, this.y);
+    this.animation.drawFrame(this.game.clockTick, this.ctx, this.x, this.y, 0.7);
     Entity.prototype.draw.call(this);
 }
 
