@@ -32,7 +32,9 @@ Circle.prototype.setIt = function () {
     this.it = true;
     this.attacker = false;
     this.color = 0;
-    this.visualRadius = 500;
+    this.visualRadius = 400;
+    this.xt = [this.x, this.x, this.x, this.x, this.x, this.x, this.x, this.x, this.x, this.x, this.x, this.x, this.x, this.x, this.x, this.x, this.x, this.x, this.x];
+    this.yt = [this.y, this.y, this.y, this.y, this.y, this.y, this.y, this.y, this.y, this.y, this.y, this.y, this.y, this.y, this.y, this.y, this.y, this.y, this.y];
 };
 
 Circle.prototype.setNotIt = function () {
@@ -46,7 +48,7 @@ Circle.prototype.hunter = function () {
     this.it = false;
     this.attacker = true;
     this.color = 2;
-    this.visualRadius = 600;
+    this.visualRadius = 400;
 };
 
 Circle.prototype.collide = function (other) {
@@ -131,19 +133,12 @@ Circle.prototype.update = function () {
             var zombieKillDraw = Math.floor((Math.random() * 25) + 1);
             //if Red collide into any color
             if (this.it && (!ent.attacker && !ent.it)) {
-              // console.log("we touched! the draw is:" + zombieKillDraw);
                 if (zombieKillDraw != 1) {
-                  // console.log("its a zombie my color is:" + this.color + "  its color is:" + ent.color);
                 ent.setIt();
-                // this.setIt();
-                // console.log("its a zombie my color is:" + this.color + "  its color is:" + ent.color);
-                // ent.it = true;
               } else {
                 console.log("it died");
-                // console.log(this.game.entities[i]);
                 ent.removeFromWorld = true;
               }
-              // console.log(this.game.entities);
             }
 
 
@@ -152,20 +147,16 @@ Circle.prototype.update = function () {
               ent.hunter();
             }
 
-            // if (this.attacker && ent.it) {
-            //   ent.setNotIt();
-            // }
-            // if (this.it && ent.attacker) {
-            //   this.setNotIt();
-            // }
-
             var plagueDraw = Math.floor((Math.random() * 500) + 1);
             if (!this.it && plagueDraw == 1) {
               // this.it = true;
               this.setIt()
             }
 
-            var babyDraw = Math.floor((Math.random() * 50) + 1);
+            if (this.it) {
+              console.log("hu " +this.speed);
+            }
+            var babyDraw = Math.floor((Math.random() * 10) + 1);
             if (!this.it && !ent.it && babyDraw == 1) {
               this.game.entities.push(new Circle(this.game));
               //this.game.addEntity(this.game.entities[2]);
@@ -187,6 +178,14 @@ Circle.prototype.update = function () {
             if (!this.attacker && ent.it) {
               this.setIt();
             }
+
+            if (this.attacker && ent.it) {
+              ent.setNotIt();
+            }
+            if (this.it && ent.attacker) {
+              this.setNotIt();
+            }
+
         } // End of collition
 
         if (ent != this && this.collide({ x: ent.x, y: ent.y, radius: this.visualRadius })) {
@@ -206,20 +205,20 @@ Circle.prototype.update = function () {
                 }
             }
 
-            if (this.attacker && dist > this.radius + ent.radius + 10 && ent.it) {
-                var difX = (ent.x - this.x)/dist;
-                var difY = (ent.y - this.y)/dist;
-                this.velocity.x += difX * acceleration / (dist*dist);
-                this.velocity.y += difY * acceleration / (dist * dist);
-                var speed = Math.sqrt(this.velocity.x*this.velocity.x + this.velocity.y*this.velocity.y);
-                if (speed > maxSpeed) {
-                    var ratio = maxSpeed / speed;
-                    this.velocity.x *= ratio;
-                    this.velocity.y *= ratio;
-                }
-            }
+            // if (this.attacker && dist > this.radius + ent.radius + 10 && ent.it) {
+            //     var difX = (ent.x - this.x)/dist;
+            //     var difY = (ent.y - this.y)/dist;
+            //     this.velocity.x += difX * acceleration / (dist*dist);
+            //     this.velocity.y += difY * acceleration / (dist * dist);
+            //     var speed = Math.sqrt(this.velocity.x*this.velocity.x + this.velocity.y*this.velocity.y);
+            //     if (speed > maxSpeed) {
+            //         var ratio = maxSpeed / speed;
+            //         this.velocity.x *= ratio;
+            //         this.velocity.y *= ratio;
+            //     }
+            // }
 
-            // //If zombie
+            //If zombie
             // if (this.attacker && ent.it) {
             //     var difX = (ent.x - this.x)/dist;
             //     var difY = (ent.y - this.y)/dist;
@@ -234,7 +233,8 @@ Circle.prototype.update = function () {
             // }
 
             //If human
-            if (ent.it && dist + 200 > this.radius + ent.radius) {
+            if (ent.it && dist + 250 > this.radius + ent.radius) {
+                maxSpeed = 350;
                 var difX = (ent.x - this.x) / dist;
                 var difY = (ent.y - this.y) / dist;
                 this.velocity.x -= difX * acceleration / (dist * dist);
@@ -242,9 +242,10 @@ Circle.prototype.update = function () {
                 var speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
                 if (speed > maxSpeed) {
                     var ratio = maxSpeed / speed;
-                    this.velocity.x *= ratio * 1.25;
-                    this.velocity.y *= ratio * 1.25;
+                    this.velocity.x *= ratio * 3.5;
+                    this.velocity.y *= ratio * 3.5;
                 }
+                maxSpeed = 200
             }
 
             // //Zombie I think  (zombies do go after hunters but also dont avoid them either)
@@ -275,7 +276,7 @@ Circle.prototype.update = function () {
             }
 
             //This is for hunter
-            if (this.attacker && dist > this.radius + ent.radius + 10 && ent.it) {
+            if ((this.attacker && dist > this.radius + ent.radius + 10) && ent.it) {
                 var difX = (ent.x - this.x) / dist;
                 var difY = (ent.y - this.y) / dist;
                 this.velocity.x += difX * acceleration / (dist * dist);
@@ -283,34 +284,60 @@ Circle.prototype.update = function () {
                 var speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
                 if (speed > maxSpeed) {
                     var ratio = maxSpeed / speed;
-                    this.velocity.x *= ratio;
-                    this.velocity.y *= ratio;
+                    this.velocity.x *= ratio * 2;
+                    this.velocity.y *= ratio * 2;
                 }
             }
 
-            //How a hunter attacks
-            if (ent.attacker && dist > this.radius + ent.radius && ent.it) {
-                var difX = (ent.x - this.x) / dist;
-                var difY = (ent.y - this.y) / dist;
-                this.velocity.x -= difX * acceleration / (dist * dist);
-                this.velocity.y -= difY * acceleration / (dist * dist);
-                var speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
-                if (speed > maxSpeed) {
-                    var ratio = maxSpeed / speed;
-                    this.velocity.x *= ratio;
-                    this.velocity.y *= ratio;
-                }
-            }
+            // //How a hunter attacks
+            // if ((ent.attacker && dist > this.radius + ent.radius) && this.it) {
+            //     var difX = (ent.x - this.x) / dist;
+            //     var difY = (ent.y - this.y) / dist;
+            //     this.velocity.x -= difX * acceleration / (dist * dist);
+            //     this.velocity.y -= difY * acceleration / (dist * dist);
+            //     var speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
+            //     if (speed > maxSpeed) {
+            //         var ratio = maxSpeed / speed;
+            //         this.velocity.x *= ratio;
+            //         this.velocity.y *= ratio;
+            //     }
+            // }
+
+
+
             //End of hunter
         }
+
+
       }// I dont know where this one goes
 
 
-    this.velocity.x -= (1 - friction) * this.game.clockTick * this.velocity.x;
-    this.velocity.y -= (1 - friction) * this.game.clockTick * this.velocity.y;
+    // this.velocity.x -= (1 - friction) * this.game.clockTick * this.velocity.x;
+    // this.velocity.y -= (1 - friction) * this.game.clockTick * this.velocity.y;
 };
 
 Circle.prototype.draw = function (ctx) {
+    if (this.it) {
+      for (var i = 0; i < this.xt.length - 1; i++) {
+        this.xt[i] = this.xt[i+1];
+        this.yt[i] = this.yt[i+1];
+      }
+      this.xt[this.xt.length] = this.x;
+      this.yt[this.yt.length] = this.y;
+
+      for (var i = this.xt.length; i > this.xt.length - 40; i= i - 1) {
+        var opp = this.xt.length + (i * -1);
+        var tempRad = this.radius - ((opp*2)/10);
+        ctx.beginPath();
+        ctx.fillStyle = this.colors[0];
+        // console.log("the radius is: " + this.radius);
+        ctx.arc(this.xt[i], this.yt[i], tempRad, 0, Math.PI * 2, false);
+        ctx.fill();
+        ctx.closePath();
+      }
+
+    }
+
     ctx.beginPath();
     ctx.fillStyle = this.colors[this.color];
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
@@ -357,7 +384,7 @@ ASSET_MANAGER.downloadAll(function () {
     var circle = new Circle(gameEngine);
     circle.setIt();
     gameEngine.addEntity(circle);
-    for (var i = 0; i < 30; i++) {
+    for (var i = 0; i < 10; i++) {
         circle = new Circle(gameEngine);
         gameEngine.addEntity(circle);
     }
