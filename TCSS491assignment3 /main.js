@@ -8,8 +8,7 @@ socket.on("connect", function () {
     console.log("Socket connected.")
 });
 
-// GameBoard code below
-// var gameEngine = new GameEngine();
+
 function distance(a, b) {
     var dx = a.x - b.x;
     var dy = a.y - b.y;
@@ -80,22 +79,22 @@ Circle.prototype.collideBottom = function () {
     return (this.y + this.radius) > 800;
 };
 
-function simpleStringify (object){
-    var simpleObject = {};
-    for (var prop in object ){
-        if (!object.hasOwnProperty(prop)){
-            continue;
-        }
-        if (typeof(object[prop]) == 'object'){
-            continue;
-        }
-        if (typeof(object[prop]) == 'function'){
-            continue;
-        }
-        simpleObject[prop] = object[prop];
-    }
-    return JSON.stringify(simpleObject); // returns cleaned up JSON
-};
+// function simpleStringify (object){
+//     var simpleObject = {};
+//     for (var prop in object ){
+//         if (!object.hasOwnProperty(prop)){
+//             continue;
+//         }
+//         if (typeof(object[prop]) == 'object'){
+//             continue;
+//         }
+//         if (typeof(object[prop]) == 'function'){
+//             continue;
+//         }
+//         simpleObject[prop] = object[prop];
+//     }
+//     return JSON.stringify(simpleObject); // returns cleaned up JSON
+// };
 
 Circle.prototype.update = function () {
     Entity.prototype.update.call(this);
@@ -158,7 +157,6 @@ Circle.prototype.update = function () {
                 if (zombieKillDraw != 1) {
                 ent.setIt();
               } else {
-                // console.log("it died");
                 ent.removeFromWorld = true;
               }
             }
@@ -171,17 +169,14 @@ Circle.prototype.update = function () {
 
             var plagueDraw = Math.floor((Math.random() * 500) + 1);
             if (!this.it && plagueDraw == 1) {
-              // this.it = true;
               this.setIt()
             }
 
             if (this.it) {
-              // console.log("hu " +this.speed);
             }
             var babyDraw = Math.floor((Math.random() * 10) + 1);
             if (!this.it && !ent.it && babyDraw == 1) {
               this.game.entities.push(new Circle(this.game));
-              //this.game.addEntity(this.game.entities[2]);
             }
 
 
@@ -189,7 +184,6 @@ Circle.prototype.update = function () {
             var fiftyfiftyDraw = Math.floor((Math.random() * 10) + 1);
 
             if ((this.attacker && ent.it)) {
-              // console.log("50/50 = " + fiftyfiftyDraw);
               if (fiftyfiftyDraw = 1) {
                 ent.removeFromWorld = true;
               } else {
@@ -289,12 +283,10 @@ Circle.prototype.draw = function (ctx) {
         var tempRad = this.radius - ((opp*2)/10);
         ctx.beginPath();
         ctx.fillStyle = this.colors[0];
-        // console.log("the radius is: " + this.radius);
         ctx.arc(this.xt[i], this.yt[i], tempRad, 0, Math.PI * 2, false);
         ctx.fill();
         ctx.closePath();
       }
-
     }
 
     ctx.beginPath();
@@ -303,15 +295,11 @@ Circle.prototype.draw = function (ctx) {
     ctx.fill();
     ctx.closePath();
 
-
 };
 
 
 
-
-function saveSim(ev) {
-
-// console.log(gamu);
+function saveSim() {
 
 var tempVel = [];
 var tempX = [];
@@ -335,43 +323,22 @@ for (var i = 0; i < gamu.entities.length; i++) {
   tempAtt.push(gamu.entities[i].attacker);
   tempVis.push(gamu.entities[i].visualRadius);
   tempCol.push(gamu.entities[i].color);
-  // tempAll.push(gamu.entities[i])
 }
 var myLen = gamu.entities.length;
 saveFile = {vel: tempVel, x: tempX, y: tempY, xt: tempXt, yt: tempYt, it: tempIt, att: tempAtt, vis: tempVis, col: tempCol, len: myLen};
-  // saveFile = {all: tempAll}
-// saveFile = {tempVel, tempX, tempY, temp, att = tempAtt, vis = tempVis, col = tempCol};
 
-// saveFile = {tempVel};
 
-// gamu.
-
-// saveData = {orbs: gameOrbs, strikes: totalStrikes, jumps: totalJumps};
-          //console.log(saveData);
 socket.emit("save", { studentname: "Keldon Fischer", statename: "Save", data: saveFile });
 
 }
 
-function loadSim(ev) {
-
-          console.log("Hi");
+function loadSim() {
 
           socket.emit("load", { studentname: "Keldon Fischer", statename: "Save" });
 
-          var that = this;
-          //the listener function that calls the server
-          //and loads the data into the game
-
-
           socket.on("load", function (data) {
 
-            console.log("data is loaded");
               var loadData = data.data;
-              //console.log("here's the loaded data: ");
-              //console.log(loadData);
-
-
-              console.log(loadData);
 
               var tempVel = loadData.vel;
               var tempX = loadData.x;
@@ -402,15 +369,6 @@ function loadSim(ev) {
                 gameEngine.addEntity(myCircle);
 
               }
-
-              // GameEngine = gamu;
-
-
-              // for (var i = 1; i < 101; i++) {
-              //     that.game.entities[i].fullness = loadedOrbs[i-1];
-              // }
-              // totalStrikes = loadData.strikes;
-              // totalJumps = loadData.jumps;
           });
 
 
@@ -430,7 +388,7 @@ ASSET_MANAGER.queueDownload("./img/black.png");
 ASSET_MANAGER.queueDownload("./img/white.png");
 // var gameEngine = new GameEngine();
 ASSET_MANAGER.downloadAll(function () {
-    // console.log("starting up da sheild");
+
     var canvas = document.getElementById('gameWorld');
     var ctx = canvas.getContext('2d');
 
@@ -444,14 +402,6 @@ ASSET_MANAGER.downloadAll(function () {
     circle.hunter();
     gameEngine.init(ctx);
 
-
-
     gameEngine.start();
-
-
-
-
-
-
 
 });
